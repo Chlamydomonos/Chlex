@@ -82,11 +82,15 @@ std::set<int> DFAFactory::checkEndStates(std::vector<std::shared_ptr<std::set<in
             {
                 endStates.insert(dfaStates[i]->id);
                 auto dfaState = dfaStates[i];
-                auto dfaEndState = std::make_shared<DFAEndState>();
+
+                // 创建shared_ptr时传入一个假的deleter，用于允许其指向的内容向unique_ptr转移
+                std::shared_ptr<DFAEndState> dfaEndState(new DFAEndState(), [](DFAEndState *p) {});
                 dfaEndState->id = dfaState->id;
                 dfaEndState->code = nfa.getEndStates().at(state).get().code;
                 dfaStates[i] = dfaEndState;
-                dfaState.reset();
+
+                // 由于原来的dfaState也具有假的deleter，因此需要手动释放
+                delete dfaState.get();
                 break;
             }
         }
@@ -106,7 +110,8 @@ std::unique_ptr<DFA> DFAFactory::generate(const NFA &nfa)
     startStateSet->insert(nfa.getStartState().id);
     closure(*startStateSet, nfa);
 
-    auto startDFAState = std::make_shared<DFAState>();
+    // 创建shared_ptr时传入一个假的deleter，用于允许其指向的内容向unique_ptr转移
+    std::shared_ptr<DFAState> startDFAState(new DFAState(), [](DFAState *p) {});
     startDFAState->id = 0;
 
     stateSetQueue.push(startStateSet);
@@ -144,7 +149,8 @@ std::unique_ptr<DFA> DFAFactory::generate(const NFA &nfa)
 
             if (isExistingStateSet == -1)
             {
-                auto nextDFAState = std::make_shared<DFAState>();
+                // 创建shared_ptr时传入一个假的deleter，用于允许其指向的内容向unique_ptr转移
+                std::shared_ptr<DFAState> nextDFAState(new DFAState(), [](DFAState *p) {});
                 nextDFAState->id = nextId++;
                 dfaState->paths[byChar] = nextDFAState->id;
 
@@ -159,13 +165,26 @@ std::unique_ptr<DFA> DFAFactory::generate(const NFA &nfa)
         }
     }
 
-    checkEndStates(stateSets, dfaStates, nfa);
+    auto endStates = checkEndStates(stateSets, dfaStates, nfa);
 
     auto dfa = std::make_unique<DFA>(*dfaStates[0]);
 
     for (int i = 0; i < dfaStates.size(); i++)
     {
-        std::unique_ptr<DFAState> dfaState = std::move(dfaStates[i]);
-        dfa->getStates().insert({})
+        std::unique_ptr<DFAState> dfaState(dfaStates[i].get());
+        dfa->getStates().insert({dfaState->id, std::move(dfaState)});
+        if (endStates.find(dfaState->id) != endStates.end())
+            dfa->getEndStates().insert((DFAEndState &)*dfaState);
     }
+
+    return dfa;
+}
+
+std::unique_ptr<DFAChlex> DFAFactory::generate(std::shared_ptr<NFAChlex> nfaChlex)
+{
+    auto dfaChlex = std::make_unique<DFAChlex>();
+    auto dfa = generate(nfaChlex->getNFA());
+    dfaChlex->dfa = std::move(dfa);
+    dfaChlex->nfaChlex = nfaChlex;
+    return dfaChlex;
 }

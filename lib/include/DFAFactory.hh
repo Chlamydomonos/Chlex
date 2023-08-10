@@ -69,11 +69,18 @@ public:
     }
 
     /**
-     * @brief 生成DFA
+     * @brief 通过NFA生成DFA
      * @param nfa 用于生成DFA的NFA
      * @return 生成的DFA
      */
     std::unique_ptr<DFA> generate(const NFA &nfa);
+
+    /**
+     * @brief 通过Chlex对象生成DFA
+     * @param nfaChlex 用于生成DFA的Chlex对象
+     * @return 生成的DFA
+     */
+    std::unique_ptr<DFAChlex> generate(std::shared_ptr<NFAChlex> nfaChlex);
 };
 
 CHLEX_NAMESPACE_END

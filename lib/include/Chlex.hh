@@ -118,6 +118,7 @@ private:
     std::unique_ptr<DFA> dfa;           ///< 对应的DFA
 
     friend class DFAFactory;
+    friend class DFAMinimizer;
 
     DFAChlex() = default; ///< 默认构造函数
 public:

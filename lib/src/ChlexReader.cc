@@ -13,6 +13,8 @@
 
 using namespace chlex;
 
+ChlexReader ChlexReader::instance;
+
 std::unique_ptr<RawChlex> ChlexReader::read(std::istream &in)
 {
     auto rawChlex = std::make_unique<RawChlex>();

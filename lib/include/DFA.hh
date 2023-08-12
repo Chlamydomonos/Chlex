@@ -44,9 +44,9 @@ struct DFAEndState : public DFAState
 class DFA
 {
 private:
-    std::map<int, std::unique_ptr<DFAState>> states;         ///< DFA中的所有状态
-    const DFAState &startState;                              ///< DFA的起始状态
-    std::set<std::reference_wrapper<DFAEndState>> endStates; ///< DFA的终止状态
+    std::map<int, std::unique_ptr<DFAState>> states;              ///< DFA中的所有状态
+    const DFAState &startState;                                   ///< DFA的起始状态
+    std::map<int, std::reference_wrapper<DFAEndState>> endStates; ///< DFA的终止状态
 
 public:
     /**
@@ -77,13 +77,13 @@ public:
      * @brief 获取DFA的终止状态
      * @return DFA的终止状态
      */
-    std::set<std::reference_wrapper<DFAEndState>> &getEndStates() { return endStates; }
+    std::map<int, std::reference_wrapper<DFAEndState>> &getEndStates() { return endStates; }
 
     /**
      * @brief 获取DFA的终止状态
      * @return DFA的终止状态
      */
-    const std::set<std::reference_wrapper<DFAEndState>> &getEndStates() const { return endStates; }
+    const std::map<int, std::reference_wrapper<DFAEndState>> &getEndStates() const { return endStates; }
 };
 
 CHLEX_NAMESPACE_END

@@ -368,7 +368,7 @@ void RegExpParser::popStacks(std::vector<char> &opStack, std::vector<std::unique
             node = std::make_unique<BiOpNode>(RENodeType::OR, std::move(left), std::move(right));
             break;
         }
-        nodeStack.push_back(node);
+        nodeStack.push_back(std::move(node));
     }
 
     if (nodeStack.size() != 1)

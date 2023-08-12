@@ -31,8 +31,6 @@ private:
     friend class ChlexReader;
     friend class RegExpParser;
 
-    RawChlex() = default; ///< 默认构造函数
-
 public:
     /**
      * @brief 获取所有Token
@@ -60,8 +58,6 @@ private:
 
     friend class RegExpParser;
     friend class NFAFactory;
-
-    ParsedChlex() = default; ///< 默认构造函数
 
 public:
     /**
@@ -91,7 +87,6 @@ private:
     friend class NFAFactory;
     friend class DFAFactory;
 
-    NFAChlex() = default; ///< 默认构造函数
 public:
     /**
      * @brief 获取解析后的Chlex
@@ -108,7 +103,7 @@ public:
 
 /**
  * @brief 含有DFA的Chlex
- * @details 包含了解析后的Chlex和对应的DFA
+ * @details 包含了含有NFA的Chlex和对应的DFA
  * @note 由DFAFactory生成
  */
 class DFAChlex
@@ -120,7 +115,6 @@ private:
     friend class DFAFactory;
     friend class DFAMinimizer;
 
-    DFAChlex() = default; ///< 默认构造函数
 public:
     /**
      * @brief 获取含有NFA的Chlex
@@ -133,6 +127,55 @@ public:
      * @return 对应的DFA
      */
     const DFA &getDFA() const { return *dfa; }
+};
+
+/**
+ * @brief 含有最小化DFA的Chlex
+ * @details 包含了含有DFA的Chlex和对应的最小化DFA
+ * @note 由DFAMinimizer生成
+ */
+class MinimizedDFAChlex
+{
+private:
+    std::shared_ptr<DFAChlex> dfaChlex; ///< 含有DFA的Chlex
+    std::unique_ptr<DFA> minimizedDFA;  ///< 对应的DFA
+
+    friend class DFAMinimizer;
+
+public:
+    /**
+     * @brief 获取含有DFA的Chlex
+     * @return 含有DFA的Chlex
+     */
+    const DFAChlex &getDFAChlex() const { return *dfaChlex; }
+
+    /**
+     * @brief 获取对应的DFA
+     * @return 对应的DFA
+     */
+    const DFA &getMinimizedDFA() const { return *minimizedDFA; }
+};
+
+class ChlexLexer
+{
+private:
+    std::shared_ptr<MinimizedDFAChlex> minimizedDFAChlex; ///< 含有最小化DFA的Chlex
+    std::string code;                                     ///< 代码
+
+    friend class LexerFactory;
+
+public:
+    /**
+     * @brief 获取含有最小化DFA的Chlex
+     * @return 含有最小化DFA的Chlex
+     */
+    const MinimizedDFAChlex &getMinimizedDFAChlex() const { return *minimizedDFAChlex; }
+
+    /**
+     * @brief 获取代码
+     * @return 代码
+     */
+    const std::string &getCode() const { return code; }
 };
 
 CHLEX_NAMESPACE_END

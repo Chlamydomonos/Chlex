@@ -95,6 +95,8 @@ std::set<int> DFAFactory::checkEndStates(std::vector<std::shared_ptr<std::set<in
             }
         }
     }
+
+    return endStates;
 }
 
 std::unique_ptr<DFA> DFAFactory::generate(const NFA &nfa)
@@ -174,7 +176,7 @@ std::unique_ptr<DFA> DFAFactory::generate(const NFA &nfa)
         std::unique_ptr<DFAState> dfaState(dfaStates[i].get());
         dfa->getStates().insert({dfaState->id, std::move(dfaState)});
         if (endStates.find(dfaState->id) != endStates.end())
-            dfa->getEndStates().insert((DFAEndState &)*dfaState);
+            dfa->getEndStates().insert({dfaState->id, (DFAEndState &)*dfaState});
     }
 
     return dfa;

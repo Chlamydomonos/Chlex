@@ -43,11 +43,11 @@ std::unique_ptr<NFA> NFAFactory::fromOr(std::unique_ptr<NFA> left, std::unique_p
 
     connect(*start, left->getStartState(), 0);
     connect(*start, right->getStartState(), 0);
-    connect(*(left->getEndStates().begin()), *end, 0);
-    connect(*(right->getEndStates().begin()), *end, 0);
+    connect(left->getEndStates().begin()->second, *end, 0);
+    connect(right->getEndStates().begin()->second, *end, 0);
 
     auto nfa = std::make_unique<NFA>(*start);
-    nfa->getEndStates().insert(*end);
+    nfa->getEndStates().insert({end->id, *end});
     nfa->getStates().insert({start->id, std::move(start)});
     nfa->getStates().insert({end->id, std::move(end)});
 
@@ -64,10 +64,11 @@ std::unique_ptr<NFA> NFAFactory::fromConcat(std::unique_ptr<NFA> left, std::uniq
 {
     auto nfa = std::make_unique<NFA>(left->getStartState());
 
-    for (auto &endState : left->getEndStates())
+    for (auto &i : left->getEndStates())
     {
+        auto &endState = i.second;
         connect(endState, right->getStartState(), 0);
-        nfa->getEndStates().insert(endState);
+        nfa->getEndStates().insert(i);
     }
 
     for (auto &state : left->getStates())
@@ -85,12 +86,12 @@ std::unique_ptr<NFA> NFAFactory::fromClosure(std::unique_ptr<NFA> nfa, IDAllocat
     auto end = std::make_unique<NFAEndState>(NFAEndState{idAllocator.nextID()});
 
     connect(*start, nfa->getStartState(), 0);
-    connect(*(nfa->getEndStates().begin()), *end, 0);
+    connect(nfa->getEndStates().begin()->second, *end, 0);
     connect(*start, *end, 0);
-    connect(*(nfa->getEndStates().begin()), nfa->getStartState(), 0);
+    connect(nfa->getEndStates().begin()->second, nfa->getStartState(), 0);
 
     auto newNFA = std::make_unique<NFA>(*start);
-    newNFA->getEndStates().insert(*end);
+    newNFA->getEndStates().insert({end->id, *end});
     newNFA->getStates().insert({start->id, std::move(start)});
     newNFA->getStates().insert({end->id, std::move(end)});
 
@@ -106,11 +107,11 @@ std::unique_ptr<NFA> NFAFactory::fromPlus(std::unique_ptr<NFA> nfa, IDAllocator 
     auto end = std::make_unique<NFAEndState>(NFAEndState{idAllocator.nextID()});
 
     connect(*start, nfa->getStartState(), 0);
-    connect(*(nfa->getEndStates().begin()), *end, 0);
-    connect(*(nfa->getEndStates().begin()), nfa->getStartState(), 0);
+    connect(nfa->getEndStates().begin()->second, *end, 0);
+    connect(nfa->getEndStates().begin()->second, nfa->getStartState(), 0);
 
     auto newNFA = std::make_unique<NFA>(*start);
-    newNFA->getEndStates().insert(*end);
+    newNFA->getEndStates().insert({end->id, *end});
     newNFA->getStates().insert({start->id, std::move(start)});
     newNFA->getStates().insert({end->id, std::move(end)});
 
@@ -126,11 +127,11 @@ std::unique_ptr<NFA> NFAFactory::fromQuestion(std::unique_ptr<NFA> nfa, IDAlloca
     auto end = std::make_unique<NFAEndState>(NFAEndState{idAllocator.nextID()});
 
     connect(*start, nfa->getStartState(), 0);
-    connect(*(nfa->getEndStates().begin()), *end, 0);
+    connect(nfa->getEndStates().begin()->second, *end, 0);
     connect(*start, *end, 0);
 
     auto newNFA = std::make_unique<NFA>(*start);
-    newNFA->getEndStates().insert(*end);
+    newNFA->getEndStates().insert({end->id, *end});
     newNFA->getStates().insert({start->id, std::move(start)});
     newNFA->getStates().insert({end->id, std::move(end)});
 
@@ -189,7 +190,7 @@ std::unique_ptr<NFA> NFAFactory::generate(const RENode &ast, IDAllocator &idAllo
 std::unique_ptr<NFA> NFAFactory::generate(const ParsedRegExp &parsedRegExp, IDAllocator &idAllocator)
 {
     auto nfa = generate(*parsedRegExp.ast, idAllocator);
-    auto &endState = static_cast<NFAEndState &>(nfa->getEndStates().begin()->get());
+    auto &endState = static_cast<NFAEndState &>(nfa->getEndStates().begin()->second);
     endState.code = parsedRegExp.regExp->code;
     return nfa;
 }
